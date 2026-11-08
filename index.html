@@ -87,7 +87,6 @@
   .live-result a{color:var(--acc3);text-decoration:underline;}
   .live-result.err h4{color:var(--acc);}
   
-  /* Dossier theme for Live Results */
   .hit { color: var(--acc2) !important; }
   .miss { color: var(--dim) !important; }
   .val-text { color: #fff !important; }
@@ -98,10 +97,10 @@
 <header>
   <div class="brand">
     <h1>OP<span>FORGE</span></h1>
-    <div class="ver">v4 · DOSSIER</div>
+    <div class="ver">v6 · ULTRA</div>
   </div>
   <div class="target-bar">
-    <input id="targetInput" placeholder="target — name / handle / email / phone / IP" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+    <input id="targetInput" placeholder="target — name / handle / email / phone / IP / plate" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
     <div class="lock" onclick="lockTarget()">LOCK</div>
   </div>
   <nav class="tabs">
@@ -122,6 +121,7 @@
       <button data-type="username">Username</button>
       <button data-type="name">Name</button>
       <button data-type="phone">Phone</button>
+      <button data-type="vehicle">Vehicle</button>
     </div>
     <button class="live-run" id="liveRun" onclick="runLive()">QUERY TARGET NOW</button>
     <div id="liveResults"></div>
