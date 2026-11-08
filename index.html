@@ -90,6 +90,10 @@
   .hit { color: var(--acc2) !important; }
   .miss { color: var(--dim) !important; }
   .val-text { color: #fff !important; }
+  
+  .matrix-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 8px; }
+  .matrix-grid a { background: var(--bg4); border: 1px solid var(--line); border-radius: 6px; padding: 8px; text-align: center; color: var(--acc3); text-decoration: none; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; }
+  .matrix-grid a:active { background: var(--bg3); }
 </style>
 </head>
 <body>
@@ -97,7 +101,7 @@
 <header>
   <div class="brand">
     <h1>OP<span>FORGE</span></h1>
-    <div class="ver">v6 · ULTRA</div>
+    <div class="ver">v7 · APEX</div>
   </div>
   <div class="target-bar">
     <input id="targetInput" placeholder="target — name / handle / email / phone / IP / plate" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
@@ -218,8 +222,11 @@ async function runLive(){
     const json = await r.json();
     box.innerHTML = "";
     
+    // Render standard results
     const results = json.results || json;
     for(const [key, val] of Object.entries(results)){
+      if (key === "40_PLATFORM_MATRIX") continue;
+
       const el = document.createElement("div");
       el.className = "live-result";
       
@@ -246,6 +253,22 @@ async function runLive(){
       if(val && val.error) el.classList.add("err");
       box.appendChild(el);
     }
+
+    // Render 40-Tab Matrix
+    if (json["40_PLATFORM_MATRIX"]) {
+      const matrixDiv = document.createElement("div");
+      matrixDiv.className = "live-result";
+      matrixDiv.innerHTML = `<h4 style="color:var(--acc4)">40 PLATFORM APEX MATRIX</h4>`;
+      
+      let gridHtml = '<div class="matrix-grid">';
+      for (const [name, url] of Object.entries(json["40_PLATFORM_MATRIX"])) {
+        gridHtml += `<a href="${url}" target="_blank">${name.replace(/_/g, ' ')}</a>`;
+      }
+      gridHtml += '</div>';
+      matrixDiv.innerHTML += gridHtml;
+      box.appendChild(matrixDiv);
+    }
+
     if(!box.children.length) {
        box.innerHTML = `<div class="live-result"><pre>No public data found.</pre></div>`;
     }
