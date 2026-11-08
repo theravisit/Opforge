@@ -84,6 +84,7 @@
   .live-result{background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:10px;}
   .live-result h4{margin:0 0 8px;font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--acc3);font-weight:800;}
   .live-result pre{margin:0;font-family:"SF Mono",ui-monospace,monospace;font-size:11px;color:#c8c8d0;white-space:pre-wrap;word-break:break-word;line-height:1.5;max-height:300px;overflow:auto;}
+  .live-result a{color:var(--acc3);text-decoration:underline;}
   .live-result.err h4{color:var(--acc);}
 </style>
 </head>
@@ -185,6 +186,12 @@ async function copyText(txt, lbl){
   }
 }
 function escapeHtml(s){ return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+function linkify(text) {
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  return escapeHtml(text).replace(urlRegex, function(url) {
+    return `<a href="${url}" target="_blank">${url}</a>`;
+  });
+}
 
 let liveType = "ip";
 document.getElementById("liveType").addEventListener("click", e=>{
@@ -222,7 +229,7 @@ async function runLive(){
         pretty = JSON.stringify(val);
       }
 
-      el.innerHTML = `<h4>${key.replace(/_/g, ' ')}</h4><pre>${escapeHtml(pretty)}</pre>`;
+      el.innerHTML = `<h4>${key.replace(/_/g, ' ')}</h4><pre>${linkify(pretty)}</pre>`;
       if(val && val.error) el.classList.add("err");
       box.appendChild(el);
     }
@@ -235,62 +242,15 @@ async function runLive(){
   btn.disabled = false; btn.textContent = "QUERY TARGET NOW";
 }
 
+// OPS AND GOALS
 const OPS = [
-  {id:"u1",cat:"Username",title:"Handle → every platform",desc:"One handle to every account.",
-   steps:[
-     {t:"open multi-site checker",url:"https://whatsmyname.app/?q={target}"},
-     {t:"scroll results — green = confirmed hit"},
-     {t:"copy each hit URL into notes"},
-     {t:"cross-check on Namechk",url:"https://namechk.com/?q={target}"}
-   ],
-   fallback:["try sherlock CLI: <code>sherlock {target}</code>","try Maigret: <code>maigret {target}</code>"],
-   pivots:["email","fullname"]},
-  {id:"n1",cat:"Full Name",title:"Name → Google/Bing deep search",desc:"Quote it, layer context.",
-   steps:[
-     {t:"open Google quoted",url:'https://www.google.com/search?q=%22{target}%22'},
-     {t:"open Bing",url:'https://www.bing.com/search?q=%22{target}%22'},
-     {t:"add LinkedIn filter",url:'https://www.google.com/search?q=%22{target}%22+site%3Alinkedin.com%2Fin'},
-     {t:"add PDFs",url:'https://www.google.com/search?q=%22{target}%22+filetype%3Apdf'}
-   ],
-   fallback:["try Yandex","try DuckDuckGo html"],pivots:["address","employment"]},
-  {id:"n2",cat:"Full Name",title:"Name → address history",desc:"TruePeopleSearch.",
-   steps:[
-     {t:"open TPS",url:"https://www.truepeoplesearch.com/results?name={target}"},
-     {t:"tap the matching card"},
-     {t:"copy each address"},
-     {t:"open Zillow for owner record",url:"https://www.zillow.com/homes/{target}_rb/"}
-   ],
-   fallback:["try fastpeoplesearch.com","try thatsthem.com"],pivots:["address","phone"]},
-  {id:"e1",cat:"Email",title:"Email → breaches",desc:"HIBP + LeakCheck.",
-   steps:[
-     {t:"open HIBP",url:"https://haveibeenpwned.com/account/{target}"},
-     {t:"note every breach"},
-     {t:"open LeakCheck",url:"https://leakcheck.io/"},
-     {t:"paste email, run check"}
-   ],
-   fallback:["try dehashed.com","try snusbase.com"],pivots:["socials","fullname"]},
-  {id:"e2",cat:"Email",title:"Email → Google identity",desc:"Epieos.",
-   steps:[
-     {t:"open Epieos",url:"https://epieos.com/?q={target}&t=email"},
-     {t:"read output: name, photo, YouTube"}
-   ],
-   fallback:["try ghunt","search email in quotes on Google"],pivots:["socials","fullname"]},
-  {id:"p1",cat:"Phone",title:"Phone → name + carrier",desc:"Truecaller + carrier lookup.",
-   steps:[
-     {t:"open Truecaller",url:"https://www.truecaller.com/search/us/{target}"},
-     {t:"read name + region"},
-     {t:"check WhatsApp",url:"https://wa.me/{target}"},
-     {t:"check Telegram",url:"https://t.me/+{target}"}
-   ],
-   fallback:["try spydialer.com","try numlookup.com"],pivots:["fullname","address"]},
-  {id:"a1",cat:"Address",title:"Address → parcel + owner",desc:"County assessor.",
-   steps:[
-     {t:"find the county assessor",url:'https://www.google.com/search?q=county+assessor+%22{target}%22'},
-     {t:"enter the address in their parcel search"},
-     {t:"read owner + purchase record"}
-   ],
-   fallback:["try zillow property record","try redfin public record"],pivots:["fullname"]
-  }
+  {id:"u1",cat:"Username",title:"Handle → every platform",desc:"One handle to every account.",steps:[{t:"open multi-site checker",url:"https://whatsmyname.app/?q={target}"},{t:"scroll results — green = confirmed hit"},{t:"copy each hit URL into notes"},{t:"cross-check on Namechk",url:"https://namechk.com/?q={target}"}],fallback:["try sherlock CLI: <code>sherlock {target}</code>","try Maigret: <code>maigret {target}</code>"],pivots:["email","fullname"]},
+  {id:"n1",cat:"Full Name",title:"Name → Google/Bing deep search",desc:"Quote it, layer context.",steps:[{t:"open Google quoted",url:'https://www.google.com/search?q=%22{target}%22'},{t:"open Bing",url:'https://www.bing.com/search?q=%22{target}%22'},{t:"add LinkedIn filter",url:'https://www.google.com/search?q=%22{target}%22+site%3Alinkedin.com%2Fin'},{t:"add PDFs",url:'https://www.google.com/search?q=%22{target}%22+filetype%3Apdf'}],fallback:["try Yandex","try DuckDuckGo html"],pivots:["address","employment"]},
+  {id:"n2",cat:"Full Name",title:"Name → address history",desc:"TruePeopleSearch.",steps:[{t:"open TPS",url:"https://www.truepeoplesearch.com/results?name={target}"},{t:"tap the matching card"},{t:"copy each address"},{t:"open Zillow for owner record",url:"https://www.zillow.com/homes/{target}_rb/"}],fallback:["try fastpeoplesearch.com","try thatsthem.com"],pivots:["address","phone"]},
+  {id:"e1",cat:"Email",title:"Email → breaches",desc:"HIBP + LeakCheck.",steps:[{t:"open HIBP",url:"https://haveibeenpwned.com/account/{target}"},{t:"note every breach"},{t:"open LeakCheck",url:"https://leakcheck.io/"},{t:"paste email, run check"}],fallback:["try dehashed.com","try snusbase.com"],pivots:["socials","fullname"]},
+  {id:"e2",cat:"Email",title:"Email → Google identity",desc:"Epieos.",steps:[{t:"open Epieos",url:"https://epieos.com/?q={target}&t=email"},{t:"read output: name, photo, YouTube"}],fallback:["try ghunt","search email in quotes on Google"],pivots:["socials","fullname"]},
+  {id:"p1",cat:"Phone",title:"Phone → name + carrier",desc:"Truecaller + carrier lookup.",steps:[{t:"open Truecaller",url:"https://www.truecaller.com/search/us/{target}"},{t:"read name + region"},{t:"check WhatsApp",url:"https://wa.me/{target}"},{t:"check Telegram",url:"https://t.me/+{target}"}],fallback:["try spydialer.com","try numlookup.com"],pivots:["fullname","address"]},
+  {id:"a1",cat:"Address",title:"Address → parcel + owner",desc:"County assessor.",steps:[{t:"find the county assessor",url:'https://www.google.com/search?q=county+assessor+%22{target}%22'},{t:"enter the address in their parcel search"},{t:"read owner + purchase record"}],fallback:["try zillow property record","try redfin public record"],pivots:["fullname"]}
 ];
 
 const GOALS = [
@@ -302,159 +262,25 @@ const GOALS = [
 ];
 
 const TOOLS = [];
-(function(){ const seen = new Set();
-  for(const op of OPS){ for(const s of op.steps||[]){ if(s.url){
-    try{ const u = new URL(s.url.replace(/\{target\}/g,"x")); const h = u.hostname.replace(/^www\./,"");
-      if(!seen.has(h)){ seen.add(h); TOOLS.push({n:h, u:s.url, d:op.title}); }
-    }catch(e){}
-  }}}
-  TOOLS.sort((a,b)=>a.n.localeCompare(b.n));
-})();
+(function(){ const seen = new Set();for(const op of OPS){ for(const s of op.steps||[]){ if(s.url){try{ const u = new URL(s.url.replace(/\{target\}/g,"x")); const h = u.hostname.replace(/^www\./,"");if(!seen.has(h)){ seen.add(h); TOOLS.push({n:h, u:s.url, d:op.title}); }}catch(e){} }}}TOOLS.sort((a,b)=>a.n.localeCompare(b.n));})();
 
 function el(t,c,h){ const e=document.createElement(t); if(c)e.className=c; if(h!==undefined)e.innerHTML=h; return e; }
-function chip(url,label){ const u=fillTarget(url); const isCopy=!u.startsWith("http");
-  return `<a class="link-chip ${isCopy?'copy':''}" href="${isCopy?'#':u}" ${isCopy?'onclick="event.preventDefault();copyText(\''+escapeHtml(u)+'\')"':'target="_blank" rel="noopener"'}>${escapeHtml(label||u)}</a>`;
-}
-
-function renderOpsList(){
-  const list = document.getElementById("opsList"); list.innerHTML="";
-  const cats={}; for(const op of OPS){ if(!cats[op.cat])cats[op.cat]=[]; cats[op.cat].push(op); }
-  for(const cat of Object.keys(cats)){
-    list.appendChild(el("div","section-label",cat));
-    for(const op of cats[cat]){ const c=el("div","card");
-      c.innerHTML=`<div class="title">${op.title}<span class="tag op">op</span></div><div class="desc">${op.desc}</div>`;
-      c.onclick=()=>renderOp(op); list.appendChild(c);
-    }
-  }
-}
-function renderTargetsList(){
-  const list=document.getElementById("targetsList"); list.innerHTML="";
-  for(const g of GOALS){ const c=el("div","card");
-    c.innerHTML=`<div class="title">${g.title}<span class="tag goal">goal</span></div><div class="desc">${g.desc}</div>`;
-    c.onclick=()=>renderGoal(g); list.appendChild(c);
-  }
-}
-function renderToolsList(){
-  const list=document.getElementById("toolsList"); list.innerHTML="";
-  for(const t of TOOLS){ const c=el("div","card");
-    c.innerHTML=`<div class="title">${t.n}<span class="tag tool">tool</span></div><div class="desc">${t.d}</div>`;
-    c.onclick=()=>{ navigator.clipboard&&copyText(t.u,t.n); window.open(fillTarget(t.u),"_blank"); };
-    list.appendChild(c);
-  }
-}
-function renderOp(op){
-  const d=document.getElementById("view-detail"); d.innerHTML="";
-  const back=el("div","back","‹ back"); back.onclick=()=>showTab(currentTab); d.appendChild(back);
-  d.appendChild(el("h2","",op.title)); d.appendChild(el("div","kicker",op.cat+" · "+op.desc));
-  const block=el("div","op-block"); block.appendChild(el("h3","",'<span class="step-n">▶</span>execute — click by click'));
-  let i=0;
-  for(const s of op.steps){ i++; let inner=s.t;
-    if(s.url) inner+="<br>"+chip(s.url,s.url.replace(/\{target\}/g,TARGET||"{target}"));
-    block.innerHTML+=`<div class="step-line"><div class="num">${i}</div><div class="body">${inner}</div></div>`;
-  }
-  d.appendChild(block);
-  if(op.fallback&&op.fallback.length){ const fb=el("div","fallback"); let ol="<h3>if this fails</h3><ol>";
-    for(const f of op.fallback) ol+=`<li>${f}</li>`; ol+="</ol>"; fb.innerHTML=ol; d.appendChild(fb);
-  }
-  const noteLabel=el("div","note-label","saved findings for this op"); d.appendChild(noteLabel);
-  const ta=document.createElement("textarea"); ta.className="note-area"; ta.placeholder="paste URLs, names, addresses — saved automatically";
-  try{ta.value=localStorage.getItem("opforge_note_"+op.id)||"";}catch(e){}
-  ta.oninput=()=>{try{localStorage.setItem("opforge_note_"+op.id,ta.value);}catch(e){}};
-  d.appendChild(ta); switchView("detail");
-}
-function renderGoal(g){
-  const d=document.getElementById("view-detail"); d.innerHTML="";
-  const back=el("div","back","‹ back"); back.onclick=()=>showTab(currentTab); d.appendChild(back);
-  d.appendChild(el("h2","",g.title)); d.appendChild(el("div","kicker","goal playbook · "+g.ops.length+" ops"));
-  for(const opId of g.ops){
-    const op=OPS.find(o=>o.id===opId); if(!op) continue;
-    const block=el("div","op-block"); block.appendChild(el("h3","",'<span class="step-n">▶</span>'+op.title));
-    let i=0;
-    for(const s of op.steps){ i++; let inner=s.t;
-      if(s.url) inner+="<br>"+chip(s.url,s.url.replace(/\{target\}/g,TARGET||"{target}"));
-      block.innerHTML+=`<div class="step-line"><div class="num">${i}</div><div class="body">${inner}</div></div>`;
-    }
-    d.appendChild(block);
-    if(op.fallback&&op.fallback.length){ const fb=el("div","fallback"); let ol="<h3>if this fails</h3><ol>";
-      for(const f of op.fallback) ol+=`<li>${f}</li>`; ol+="</ol>"; fb.innerHTML=ol; d.appendChild(fb);
-    }
-  }
-  switchView("detail");
-}
-function filterOps(q){
-  q=q.toLowerCase(); const list=document.getElementById("opsList"); list.innerHTML="";
-  const cats={};
-  for(const op of OPS){
-    if(q&&!op.title.toLowerCase().includes(q)&&!op.desc.toLowerCase().includes(q)&&!op.cat.toLowerCase().includes(q)) continue;
-    if(!cats[op.cat])cats[op.cat]=[]; cats[op.cat].push(op);
-  }
-  for(const cat of Object.keys(cats)){ list.appendChild(el("div","section-label",cat));
-    for(const op of cats[cat]){ const c=el("div","card");
-      c.innerHTML=`<div class="title">${op.title}<span class="tag op">op</span></div><div class="desc">${op.desc}</div>`;
-      c.onclick=()=>renderOp(op); list.appendChild(c);
-    }
-  }
-  if(!list.children.length) list.appendChild(el("div","empty","no matches."));
-}
-function filterTargets(q){
-  q=q.toLowerCase(); const list=document.getElementById("targetsList"); list.innerHTML="";
-  for(const g of GOALS){ if(q&&!g.title.toLowerCase().includes(q)&&!g.desc.toLowerCase().includes(q)) continue;
-    const c=el("div","card");
-    c.innerHTML=`<div class="title">${g.title}<span class="tag goal">goal</span></div><div class="desc">${g.desc}</div>`;
-    c.onclick=()=>renderGoal(g); list.appendChild(c);
-  }
-  if(!list.children.length) list.appendChild(el("div","empty","no matches."));
-}
-function filterTools(q){
-  q=q.toLowerCase(); const list=document.getElementById("toolsList"); list.innerHTML="";
-  for(const t of TOOLS){ if(q&&!t.n.toLowerCase().includes(q)&&!t.d.toLowerCase().includes(q)) continue;
-    const c=el("div","card");
-    c.innerHTML=`<div class="title">${t.n}<span class="tag tool">tool</span></div><div class="desc">${t.d}</div>`;
-    c.onclick=()=>{copyText(t.u,t.n);window.open(fillTarget(t.u),"_blank");}; list.appendChild(c);
-  }
-  if(!list.children.length) list.appendChild(el("div","empty","no matches."));
-}
-function buildDork(){
-  const base=document.getElementById("dorkBase").value.trim();
-  const site=document.getElementById("dorkSite").value.trim();
-  const file=document.getElementById("dorkFile").value.trim();
-  let parts=[];
-  if(base)parts.push(base.replace(/\{target\}/g,TARGET||"{target}"));
-  if(site)parts.push("site:"+site.replace(/^https?:\/\//,""));
-  if(file)parts.push("filetype:"+file.replace(/^\./,""));
-  const q=parts.join(" "); const out=document.getElementById("dorkOutput");
-  out.innerHTML=`<div class="query-box"><button class="copy-btn" onclick="copyText('${escapeHtml(q)}')">COPY</button>${escapeHtml(q)}</div>
-    <a class="link-chip" href="https://www.google.com/search?q=${encodeURIComponent(q)}" target="_blank">open in google</a>
-    <a class="link-chip" href="https://www.bing.com/search?q=${encodeURIComponent(q)}" target="_blank">open in bing</a>
-    <a class="link-chip" href="https://duckduckgo.com/html/?q=${encodeURIComponent(q)}" target="_blank">open in ddg</a>`;
-}
-function renderSavedNotes(){
-  const box=document.getElementById("savedNotes"); let any=false, html="";
-  for(const op of OPS){
-    let v=""; try{v=localStorage.getItem("opforge_note_"+op.id)||"";}catch(e){}
-    if(!v.trim()) continue; any=true;
-    html+=`<div style="padding:10px 0;border-bottom:1px solid var(--line);">
-      <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--acc2);font-weight:700;margin-bottom:4px;">${op.title}</div>
-      <div style="font-size:12.5px;color:#c8c8d0;white-space:pre-wrap;word-break:break-word;">${escapeHtml(v)}</div></div>`;
-  }
-  box.innerHTML=any?html:'<div class="empty">no saved findings yet. open any op and type into the notes box — it saves automatically.</div>';
-}
+function chip(url,label){ const u=fillTarget(url); const isCopy=!u.startsWith("http");return `<a class="link-chip ${isCopy?'copy':''}" href="${isCopy?'#':u}" ${isCopy?'onclick="event.preventDefault();copyText(\''+escapeHtml(u)+'\')"':'target="_blank" rel="noopener"'}>${escapeHtml(label||u)}</a>`;}
+function renderOpsList(){const list = document.getElementById("opsList"); list.innerHTML="";const cats={}; for(const op of OPS){ if(!cats[op.cat])cats[op.cat]=[]; cats[op.cat].push(op); }for(const cat of Object.keys(cats)){list.appendChild(el("div","section-label",cat));for(const op of cats[cat]){ const c=el("div","card");c.innerHTML=`<div class="title">${op.title}<span class="tag op">op</span></div><div class="desc">${op.desc}</div>`;c.onclick=()=>renderOp(op); list.appendChild(c);}}}
+function renderTargetsList(){const list=document.getElementById("targetsList"); list.innerHTML="";for(const g of GOALS){ const c=el("div","card");c.innerHTML=`<div class="title">${g.title}<span class="tag goal">goal</span></div><div class="desc">${g.desc}</div>`;c.onclick=()=>renderGoal(g); list.appendChild(c);}}
+function renderToolsList(){const list=document.getElementById("toolsList"); list.innerHTML="";for(const t of TOOLS){ const c=el("div","card");c.innerHTML=`<div class="title">${t.n}<span class="tag tool">tool</span></div><div class="desc">${t.d}</div>`;c.onclick=()=>{ navigator.clipboard&&copyText(t.u,t.n); window.open(fillTarget(t.u),"_blank"); };list.appendChild(c);}}
+function renderOp(op){const d=document.getElementById("view-detail"); d.innerHTML="";const back=el("div","back","‹ back"); back.onclick=()=>showTab(currentTab); d.appendChild(back);d.appendChild(el("h2","",op.title)); d.appendChild(el("div","kicker",op.cat+" · "+op.desc));const block=el("div","op-block"); block.appendChild(el("h3","",'<span class="step-n">▶</span>execute — click by click'));let i=0;for(const s of op.steps){ i++; let inner=s.t;if(s.url) inner+="<br>"+chip(s.url,s.url.replace(/\{target\}/g,TARGET||"{target}"));block.innerHTML+=`<div class="step-line"><div class="num">${i}</div><div class="body">${inner}</div></div>`;}d.appendChild(block);if(op.fallback&&op.fallback.length){ const fb=el("div","fallback"); let ol="<h3>if this fails</h3><ol>";for(const f of op.fallback) ol+=`<li>${f}</li>`; ol+="</ol>"; fb.innerHTML=ol; d.appendChild(fb);}const noteLabel=el("div","note-label","saved findings for this op"); d.appendChild(noteLabel);const ta=document.createElement("textarea"); ta.className="note-area"; ta.placeholder="paste URLs, names, addresses — saved automatically";try{ta.value=localStorage.getItem("opforge_note_"+op.id)||"";}catch(e){}ta.oninput=()=>{try{localStorage.setItem("opforge_note_"+op.id,ta.value);}catch(e){}};d.appendChild(ta); switchView("detail");}
+function renderGoal(g){const d=document.getElementById("view-detail"); d.innerHTML="";const back=el("div","back","‹ back"); back.onclick=()=>showTab(currentTab); d.appendChild(back);d.appendChild(el("h2","",g.title)); d.appendChild(el("div","kicker","goal playbook · "+g.ops.length+" ops"));for(const opId of g.ops){const op=OPS.find(o=>o.id===opId); if(!op) continue;const block=el("div","op-block"); block.appendChild(el("h3","",'<span class="step-n">▶</span>'+op.title));let i=0;for(const s of op.steps){ i++; let inner=s.t;if(s.url) inner+="<br>"+chip(s.url,s.url.replace(/\{target\}/g,TARGET||"{target}"));block.innerHTML+=`<div class="step-line"><div class="num">${i}</div><div class="body">${inner}</div></div>`;}d.appendChild(block);if(op.fallback&&op.fallback.length){ const fb=el("div","fallback"); let ol="<h3>if this fails</h3><ol>";for(const f of op.fallback) ol+=`<li>${f}</li>`; ol+="</ol>"; fb.innerHTML=ol; d.appendChild(fb);}}switchView("detail");}
+function filterOps(q){q=q.toLowerCase(); const list=document.getElementById("opsList"); list.innerHTML="";const cats={};for(const op of OPS){if(q&&!op.title.toLowerCase().includes(q)&&!op.desc.toLowerCase().includes(q)&&!op.cat.toLowerCase().includes(q)) continue;if(!cats[op.cat])cats[op.cat]=[]; cats[op.cat].push(op);}for(const cat of Object.keys(cats)){ list.appendChild(el("div","section-label",cat));for(const op of cats[cat]){ const c=el("div","card");c.innerHTML=`<div class="title">${op.title}<span class="tag op">op</span></div><div class="desc">${op.desc}</div>`;c.onclick=()=>renderOp(op); list.appendChild(c);}}if(!list.children.length) list.appendChild(el("div","empty","no matches."));}
+function filterTargets(q){q=q.toLowerCase(); const list=document.getElementById("targetsList"); list.innerHTML="";for(const g of GOALS){ if(q&&!g.title.toLowerCase().includes(q)&&!g.desc.toLowerCase().includes(q)) continue;const c=el("div","card");c.innerHTML=`<div class="title">${g.title}<span class="tag goal">goal</span></div><div class="desc">${g.desc}</div>`;c.onclick=()=>renderGoal(g); list.appendChild(c);}if(!list.children.length) list.appendChild(el("div","empty","no matches."));}
+function filterTools(q){q=q.toLowerCase(); const list=document.getElementById("toolsList"); list.innerHTML="";for(const t of TOOLS){ if(q&&!t.n.toLowerCase().includes(q)&&!t.d.toLowerCase().includes(q)) continue;const c=el("div","card");c.innerHTML=`<div class="title">${t.n}<span class="tag tool">tool</span></div><div class="desc">${t.d}</div>`;c.onclick=()=>{copyText(t.u,t.n);window.open(fillTarget(t.u),"_blank");}; list.appendChild(c);}if(!list.children.length) list.appendChild(el("div","empty","no matches."));}
+function buildDork(){const base=document.getElementById("dorkBase").value.trim();const site=document.getElementById("dorkSite").value.trim();const file=document.getElementById("dorkFile").value.trim();let parts=[];if(base)parts.push(base.replace(/\{target\}/g,TARGET||"{target}"));if(site)parts.push("site:"+site.replace(/^https?:\/\//,""));if(file)parts.push("filetype:"+file.replace(/^\./,""));const q=parts.join(" "); const out=document.getElementById("dorkOutput");out.innerHTML=`<div class="query-box"><button class="copy-btn" onclick="copyText('${escapeHtml(q)}')">COPY</button>${escapeHtml(q)}</div><a class="link-chip" href="https://www.google.com/search?q=${encodeURIComponent(q)}" target="_blank">open in google</a><a class="link-chip" href="https://www.bing.com/search?q=${encodeURIComponent(q)}" target="_blank">open in bing</a><a class="link-chip" href="https://duckduckgo.com/html/?q=${encodeURIComponent(q)}" target="_blank">open in ddg</a>`;}
+function renderSavedNotes(){const box=document.getElementById("savedNotes"); let any=false, html="";for(const op of OPS){let v=""; try{v=localStorage.getItem("opforge_note_"+op.id)||"";}catch(e){}if(!v.trim()) continue; any=true;html+=`<div style="padding:10px 0;border-bottom:1px solid var(--line);"><div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--acc2);font-weight:700;margin-bottom:4px;">${op.title}</div><div style="font-size:12.5px;color:#c8c8d0;white-space:pre-wrap;word-break:break-word;">${escapeHtml(v)}</div></div>`;}box.innerHTML=any?html:'<div class="empty">no saved findings yet. open any op and type into the notes box — it saves automatically.</div>';}
 let currentTab="live";
-function showTab(t){
-  currentTab=t; document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));
-  document.querySelectorAll("nav.tabs button").forEach(b=>b.classList.remove("active"));
-  document.getElementById("view-"+t).classList.add("active"); document.getElementById("tab-"+t).classList.add("active");
-  if(t==="build") renderSavedNotes();
-}
+function showTab(t){currentTab=t; document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));document.querySelectorAll("nav.tabs button").forEach(b=>b.classList.remove("active"));document.getElementById("view-"+t).classList.add("active"); document.getElementById("tab-"+t).classList.add("active");if(t==="build") renderSavedNotes();}
 function switchView(v){ document.querySelectorAll(".view").forEach(e=>e.classList.remove("active")); document.getElementById("view-"+v).classList.add("active"); window.scrollTo(0,0); }
-function refreshCurrentView(){
-  if(currentTab==="ops") filterOps(document.getElementById("opsSearch").value);
-  if(currentTab==="targets") filterTargets(document.getElementById("targetsSearch").value);
-  if(currentTab==="tools") filterTools(document.getElementById("toolsSearch").value);
-}
-document.getElementById("targetInput").addEventListener("input",(e)=>{
-  TARGET=e.target.value.trim(); try{localStorage.setItem("opforge_target",TARGET);}catch(e){} refreshCurrentView();
-});
+function refreshCurrentView(){if(currentTab==="ops") filterOps(document.getElementById("opsSearch").value);if(currentTab==="targets") filterTargets(document.getElementById("targetsSearch").value);if(currentTab==="tools") filterTools(document.getElementById("toolsSearch").value);}
+document.getElementById("targetInput").addEventListener("input",(e)=>{TARGET=e.target.value.trim(); try{localStorage.setItem("opforge_target",TARGET);}catch(e){} refreshCurrentView();});
 renderOpsList(); renderTargetsList(); renderToolsList();
 </script>
 </body>
