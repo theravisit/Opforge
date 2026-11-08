@@ -205,17 +205,29 @@ async function runLive(){
     const r = await fetch(u);
     const json = await r.json();
     box.innerHTML = "";
-    for(const [key, val] of Object.entries(json.results||{})){
+    
+    const results = json.results || json;
+    for(const [key, val] of Object.entries(results)){
       const el = document.createElement("div");
       el.className = "live-result";
-      const pretty = typeof val === "string" ? val : JSON.stringify(val, null, 2);
-      el.innerHTML = `<h4>${key}</h4><pre>${escapeHtml(pretty)}</pre>`;
+      
+      let pretty = "";
+      if (typeof val === "string" || typeof val === "number") {
+        pretty = val;
+      } else if (Array.isArray(val)) {
+        pretty = val.join("\n");
+      } else if (val !== null && typeof val === "object") {
+        pretty = Object.entries(val).map(([k,v]) => `${k}: ${JSON.stringify(v)}`).join("\n");
+      } else {
+        pretty = JSON.stringify(val);
+      }
+
+      el.innerHTML = `<h4>${key.replace(/_/g, ' ')}</h4><pre>${escapeHtml(pretty)}</pre>`;
       if(val && val.error) el.classList.add("err");
       box.appendChild(el);
     }
     if(!box.children.length) {
-       const pretty = JSON.stringify(json, null, 2);
-       box.innerHTML = `<div class="live-result"><pre>${escapeHtml(pretty)}</pre></div>`;
+       box.innerHTML = `<div class="live-result"><pre>No public data found.</pre></div>`;
     }
   }catch(e){
     box.innerHTML = `<div class="live-result err"><h4>worker error</h4><pre>${escapeHtml(String(e))}</pre></div>`;
