@@ -89,11 +89,19 @@
   
   .hit { color: var(--acc2) !important; }
   .miss { color: var(--dim) !important; }
-  .val-text { color: #fff !important; }
   
   .matrix-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 8px; }
   .matrix-grid a { background: var(--bg4); border: 1px solid var(--line); border-radius: 6px; padding: 8px; text-align: center; color: var(--acc3); text-decoration: none; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; }
   .matrix-grid a:active { background: var(--bg3); }
+  
+  /* Script AI Styles */
+  .ai-script-box { background: linear-gradient(180deg, #120508 0%, #08080a 100%); border: 1px solid var(--acc); border-radius: 12px; padding: 16px; margin-bottom: 14px; box-shadow: 0 0 15px rgba(255,61,92,0.15); }
+  .ai-script-box h4 { color: var(--acc); margin: 0 0 12px; font-size: 12px; letter-spacing: .12em; font-weight: 900; display: flex; align-items: center; gap: 8px; }
+  .ai-script-box h4::before { content: "⚡"; font-size: 14px; }
+  .ai-script-box ol { margin: 0; padding-left: 22px; }
+  .ai-script-box li { color: #e8e8e8; font-size: 13px; line-height: 1.6; margin-bottom: 10px; }
+  .ai-script-box li:last-child { margin-bottom: 0; }
+  .ai-script-box li b { color: var(--acc2); }
 </style>
 </head>
 <body>
@@ -101,7 +109,7 @@
 <header>
   <div class="brand">
     <h1>OP<span>FORGE</span></h1>
-    <div class="ver">v7 · APEX</div>
+    <div class="ver">v9 · AI</div>
   </div>
   <div class="target-bar">
     <input id="targetInput" placeholder="target — name / handle / email / phone / IP / plate" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
@@ -222,10 +230,23 @@ async function runLive(){
     const json = await r.json();
     box.innerHTML = "";
     
+    // Render AI Script
+    if (json["FORGE_AI_SCRIPT"] && json["FORGE_AI_SCRIPT"].length > 0) {
+      const scriptDiv = document.createElement("div");
+      scriptDiv.className = "ai-script-box";
+      let ol = "<h4>FORGE AI SCRIPT</h4><ol>";
+      for(const step of json["FORGE_AI_SCRIPT"]) {
+         ol += `<li>${step}</li>`;
+      }
+      ol += "</ol>";
+      scriptDiv.innerHTML = ol;
+      box.appendChild(scriptDiv);
+    }
+
     // Render standard results
     const results = json.results || json;
     for(const [key, val] of Object.entries(results)){
-      if (key === "40_PLATFORM_MATRIX") continue;
+      if (key === "40_PLATFORM_MATRIX" || key === "FORGE_AI_SCRIPT") continue;
 
       const el = document.createElement("div");
       el.className = "live-result";
@@ -258,7 +279,7 @@ async function runLive(){
     if (json["40_PLATFORM_MATRIX"]) {
       const matrixDiv = document.createElement("div");
       matrixDiv.className = "live-result";
-      matrixDiv.innerHTML = `<h4 style="color:var(--acc4)">40 PLATFORM APEX MATRIX</h4>`;
+      matrixDiv.innerHTML = `<h4 style="color:var(--acc4)">40 PLATFORM FINAL MATRIX</h4>`;
       
       let gridHtml = '<div class="matrix-grid">';
       for (const [name, url] of Object.entries(json["40_PLATFORM_MATRIX"])) {
